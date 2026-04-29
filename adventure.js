@@ -228,11 +228,140 @@ class AdventureScene extends Phaser.Scene {
         display.setText(codeDisplayStr);*/
     }
 
-    enterCode(numInput, codeArray, codeDisplay) {
+    fadeObject(target, alphaStart, alphaEnd) {
+        this.tweens.add({
+            targets: target,
+            alpha: {from: alphaStart, to: alphaEnd},
+            ease: 'Linear',
+        })
+    }
+
+    enterCode(summoningObject, codeArray, sceneObjectArray) {
         //TODO: make down button that decrements, make enter button and add functionality for correct/incorrect inputs
         // and add stuff that makes codes save and not update when all this junk is not on screen
         //let codeDisplay = this.add.text(this.w * 0.1, this.w * 0.1, `${var1} ${var2} ${var3}`, {font: '400px Arial'});
-        this.updateDisplayCode(codeArray, codeDisplay);//add display arg
+        //this.updateDisplayCode(codeArray, codeDisplay);//add display arg
+        //console.log(codeArray[0]);
+        summoningObject.disableInteractive();
+
+        let startingXPos = 0;
+        let upButtons = [];
+        let downButtons = [];
+        let display = [];
+        let numberFrames = [];
+        let frame = this.add.image(this.w * 0.5, this.h * 0.5, 'UIFrame').setScale(6).setAlpha(0);
+        let uiBackground = this.add.image(this.w * 0.5, this.h * 0.5, 'UIBackground').setScale(6).setAlpha(0)
+        //this.add.image(this.sw * 100, this.sh * 123, 'redframe2').setScale(6);
+        //this.add.image(this.sw * 220, this.sh * 123, 'redframe2').setScale(6);
+
+        for (let i = 0; i < sceneObjectArray.length; ++i) {
+            sceneObjectArray[i].disableInteractive();
+        }
+
+        if (codeArray.length == 3) {
+            startingXPos = 110;
+        }
+        else {
+            //blabl
+        }
+
+        for (let i = 0; i < codeArray.length; ++i){
+            numberFrames.push(this.add.image(((startingXPos + 10) + (40 * i)) * this.sw, this.sh * 71, 'numberFrame')
+            .setScale(6));
+
+            display.push(this.add.bitmapText((startingXPos + (40 * i)) * this.sw, this.sh * 53, 'pixelFont', `${codeArray[i]}`, 240));
+            upButtons.push(this.add.image((startingXPos + (40 * i) + 10) * this.sw, this.sh * 41.5, 'upArrow')
+            .setScale(6)
+            .setAlpha(0));
+
+            downButtons.push(this.add.image((startingXPos + (40 * i) + 10) * this.sw, this.sh * 100.5, 'downArrow')
+            .setScale(6)
+            .setAlpha(0));
+        }
+
+        let cancel = this.add.image(this.sw * 100, this.sh * 123, 'enterCancelButton')
+        .setScale(6)
+        .setAlpha(0);
+
+        let enter = this.add.image(this.sw * 220, this.sh * 123, 'enterCancelButton')
+        .setScale(6)
+        .setAlpha(0);
+
+        let exitText = this.add.bitmapText(this.sw * 89, this.sh * 118.5, 'pixelFont', 'Exit', 60, 1).setAlpha(0);
+        let enterText = this.add.bitmapText(this.sw * 206, this.sh * 118.5, 'pixelFont', 'Enter', 60, 1).setAlpha(0);
+
+        this.fadeObject(uiBackground, 0, 0.5);
+        this.fadeObject(frame, 0, 1);
+        this.fadeObject(display, 0, 1);
+        this.fadeObject(upButtons, 0, 1);
+        this.fadeObject(downButtons, 0, 1);
+        this.fadeObject(cancel, 0, 1);
+        this.fadeObject(enter, 0, 1);
+        this.fadeObject(numberFrames, 0, 1);
+        this.fadeObject(exitText, 0, 1);
+        this.fadeObject(enterText, 0, 1);
+
+        for (let i = 0; i < codeArray.length; ++i){
+            upButtons[i].setInteractive()
+            .on('pointerdown', () => {
+                if (codeArray[i] == 9) {
+                    codeArray[i] = 0;
+                }
+                else {
+                    codeArray[i] += 1;
+                }
+                display[i].setText(`${codeArray[i]}`);
+            });
+
+            downButtons[i].setInteractive()
+            .on('pointerdown', () => {
+                if (codeArray[i] == 0) {
+                    codeArray[i] = 9;
+                }
+                else {
+                    codeArray[i] -= 1;
+                }
+                display[i].setText(`${codeArray[i]}`);
+            });
+        }
+
+        cancel.setInteractive()
+        .on('pointerdown', () => {
+            for (let i = codeArray.length - 1; i >= 0; --i) {
+                downButtons[i].disableInteractive();
+                upButtons[i].disableInteractive();
+                display[i].disableInteractive();
+                cancel.disableInteractive();
+                enter.disableInteractive();
+            }
+
+            this.fadeObject(display, 1, 0);
+            this.fadeObject(downButtons, 1, 0);
+            this.fadeObject(upButtons, 1, 0);
+            this.fadeObject(uiBackground, 0.5, 0);
+            this.fadeObject(numberFrames, 1, 0);
+            this.fadeObject(frame, 1, 0);
+            this.fadeObject(cancel, 1, 0);
+            this.fadeObject(enter, 1, 0);
+            this.fadeObject(exitText, 1, 0);
+            this.fadeObject(enterText, 1, 0);
+            summoningObject.setInteractive();
+            
+            for (let i = 0; i < sceneObjectArray.length; ++i) {
+                sceneObjectArray[i].setInteractive();
+            }
+        });
+
+        enter.setInteractive()
+        .on('pointerdown', () => {
+            //if code matches actual code, cool, do nothing otherwise
+        })
+
+        //console.log(codeArray.length);
+        //console.log(startingXPos);
+        //let nummy = this.add.bitmapText(this.sw * 150, this.sh * 53, 'pixelFont', `1`, 240);
+
+
         /*let up1 = this.add.image(this.w * 0.15, this.w * 0.1, 'upButtonPlaceholder')
         .setScale(0.04)
         .setInteractive()
@@ -289,7 +418,7 @@ class AdventureScene extends Phaser.Scene {
         
         */
             
-        let up2 = this.add.image(this.w * 0.33, this.w * 0.1, 'upButtonPlaceholder')
+        /*let up2 = this.add.image(this.w * 0.33, this.w * 0.1, 'upButtonPlaceholder')
         .setScale(0.04)
         .setInteractive()
         .on('pointerdown', () => {
@@ -313,7 +442,7 @@ class AdventureScene extends Phaser.Scene {
                 val3 += 1;
             }
             codeInput.setText(`${var1} ${var2} ${var3}`);
-        });
+        });*/
     }
 
     doorAdd(xPos, yPos, doorImage, scale, key) {

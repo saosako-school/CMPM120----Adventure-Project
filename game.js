@@ -14,27 +14,34 @@ class Hallway extends AdventureScene {
         this.load.image('downArrow', 'images/UI assets/DownArrow.png');
         this.load.image('upArrow', 'images/UI assets/UpArrow.png');
         this.load.image('redframe', 'images/Placeholders/numberFrameHelp.png');
+        this.load.image('redframe2', 'images/Placeholders/buttonFrameHelp.png');
     }
 
     onEnter() {
-        let mathDoor = this.doorAdd(this.s*20, this.w*0.3, 'doorPlaceholder', 0.08, 'math classroom');
-        let englishDoor = this.doorAdd(this.w*0.1, this.w*0.1, 'doorPlaceholder', 0.08, 'english classroom');
-        let chemDoor = this.doorAdd(this.w*0.2, this.w*0.2, 'doorPlaceholder', 0.08, 'chemistry classroom');
-        let orchDoor = this.doorAdd(this.w*0.4, this.w*0.4, 'doorPlaceholder', 0.08, 'orchestra classroom');
-        let exitDoor = this.doorAdd(this.w*0.15, this.w*0.15, 'doorPlaceholder', 0.08, 'exit door');
+        let interactiveObjects = [];
+        interactiveObjects.push(this.doorAdd(this.s*20, this.w*0.3, 'doorPlaceholder', 0.08, 'math classroom'));
+        interactiveObjects.push(this.doorAdd(this.w*0.1, this.w*0.1, 'doorPlaceholder', 0.08, 'english classroom'));
+        interactiveObjects.push(this.doorAdd(this.w*0.2, this.w*0.2, 'doorPlaceholder', 0.08, 'chemistry classroom'));
+        interactiveObjects.push(this.doorAdd(this.w*0.4, this.w*0.4, 'doorPlaceholder', 0.08, 'orchestra classroom'));
+        interactiveObjects.push(this.doorAdd(this.w*0.15, this.w*0.15, 'doorPlaceholder', 0.08, 'exit door'));
 
-        /*let val1 = 0;
+        let testobject = this.add.image(this.s * 40, this.s * 40, 'upButtonPlaceholder')
+        .setScale(0.4)
+        .setInteractive()
+        .on('pointerdown', () => {
+            this.enterCode(testobject, this.codes.lockbox, interactiveObjects);
+        });
 
-        let frame = this.add.image(this.w * 0.5, this.h * 0.5, 'UIFrame').setScale(6);
-        let uiBackground = this.add.image(this.w * 0.5, this.h * 0.5, 'UIBackground').setScale(6).setAlpha(0.5);
-        let cancelButton = this.add.image(this.sw * 100, this.sh * 123, 'enterCancelButton').setScale(6);
-        let enterButton = this.add.image(this.sw * 220, this.sh * 123, 'enterCancelButton').setScale(6);
-        let numberFrame1 = this.add.image(this.sw * 160, this.sh * 71, 'numberFrame').setScale(6);
-        let numberFrame2 = this.add.image(this.sw * 200, this.sh * 71, 'numberFrame').setScale(6);
-        let numberFrame3 = this.add.image(this.sw * 120, this.sh * 71, 'numberFrame').setScale(6);
+        
+        //let uiBackground = this.add.image(this.w * 0.5, this.h * 0.5, 'UIBackground').setScale(6).setAlpha(0.5);
+        //let cancelButton = this.add.image(this.sw * 100, this.sh * 123, 'enterCancelButton').setScale(6);
+        //let enterButton = this.add.image(this.sw * 220, this.sh * 123, 'enterCancelButton').setScale(6);
+        //let numberFrame1 = this.add.image(this.sw * 160, this.sh * 71, 'numberFrame').setScale(6);
+        //let numberFrame2 = this.add.image(this.sw * 200, this.sh * 71, 'numberFrame').setScale(6);
+        //let numberFrame3 = this.add.image(this.sw * 120, this.sh * 71, 'numberFrame').setScale(6);
         //let redFrame = this.add.image(this.sw * 160, this.sh * 71, 'redframe').setScale(6);
-        let nummy = this.add.bitmapText(this.sw * 150, this.sh * 53, 'pixelFont', `${val1}`, 240);
-        let upArrow = this.add.image(this.sw * 160, this.sh * 41.5, 'upArrow')
+        //let nummy = this.add.bitmapText(this.sw * 150, this.sh * 53, 'pixelFont', `${val1}`, 240);
+        /*let upArrow = this.add.image(this.sw * 160, this.sh * 41.5, 'upArrow')
         .setScale(6)
         .setInteractive()
         .on('pointerdown', () => {
@@ -58,8 +65,8 @@ class Hallway extends AdventureScene {
                 val1 -= 1;
             }
             nummy.setText(`${val1}`);
-        });
-        //let testing123 = this.add.bitmapText(this.sw * 150, this.sh * 53, 'pixelFont', '1', 240, 1);*/
+        });*/
+        //let testing123 = this.add.bitmapText(this.sw * 150, this.sh * 53, 'pixelFont', '1', 240, 1);
 
         //let texthelp = this.add.bitmapText(this.s*20, this.s*20, 'pixelFont', 'AAAA', 10);
         /*let tester = this.add.image(this.w*0.6, this.w*0.6, 'upButtonPlaceholder')

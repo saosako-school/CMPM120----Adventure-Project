@@ -1,11 +1,11 @@
-A simple adventure game by {who?} based on a simple adventure game engine by [Adam Smith](https://github.com/rndmcnlly).
+A simple adventure game by Sydney based on a simple adventure game engine by [Adam Smith](https://github.com/rndmcnlly).
 
 Code requirements:
 - **4+ scenes based on `AdventureScene`**: unsatisfied (name at least 4 of the classes).
 - **2+ scenes *not* based on `AdventureScene`**: unsatisfied (name the classes).
 - **2+ methods or other enhancement added to the adventure game engine to simplify my scenes**:
-    - Enhancement 1: unsatisfied (name the method and explain the use of it).
-    - Enhancement 2: unsatisfied (name the method and explain the use of it).
+    - Enhancement 1: doorAdd(); adds door objects that can transport the player to different scenes
+    - Enhancement 2: made this.sh and this.sw which scale to the height and width of the canvas I drew the assets on (so this.sh is 1/180 of the height since I drew my assets on a canvas with a height of 180 pixels), which made calculating where to place objects much much easier.
 
 Experience requirements:
 - **4+ locations in the game world**: unsatisfied (name at least 4 of the classes).

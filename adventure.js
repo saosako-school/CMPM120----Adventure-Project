@@ -24,6 +24,11 @@ class AdventureScene extends Phaser.Scene {
      */
     init(data) {
         this.inventory = data.inventory || [];
+        this.codes = data.codes || {
+            filingCabinet: [0, 0, 0],
+            lockbox: [0, 0, 0],
+            locker: ['A', 'A', 'A', 'A'],
+        };
     }
 
     /**
@@ -33,6 +38,11 @@ class AdventureScene extends Phaser.Scene {
     constructor(key, name) {
         super(key);
         this.name = name;
+    }
+
+    preload() {
+        this.load.bitmapFont('pixelFont', 'bitmap font/minogram_6x10.png', 'bitmap font/minogram_6x10.xml');
+        this.sceneSpecificLoad();
     }
 
     /**
@@ -50,23 +60,20 @@ class AdventureScene extends Phaser.Scene {
         this.h = this.game.config.height;
         /** @type {number} UI spacing unit in scaled pixels (1% of width). Use multiples of `this.s` for text sizes, margins, etc. */
         this.s = this.game.config.width * 0.01;
+        this.sw = this.game.config.width * 0.003125;
+        this.sh = this.game.config.height/180;
 
         this.cameras.main.setBackgroundColor('#444');
         this.cameras.main.fadeIn(this.transitionDuration, 0, 0, 0);
 
         this.add.rectangle(this.w * 0.75, 0, this.w * 0.25, this.h).setOrigin(0, 0).setFillStyle(0);
-        this.add.text(this.w * 0.75 + this.s, this.s)
-            .setText(this.name)
-            .setStyle({ fontSize: `${3 * this.s}px` })
-            .setWordWrapWidth(this.w * 0.25 - 2 * this.s);
+        this.add.bitmapText(this.w * 0.75 + this.s, this.s, 'pixelFont', this.name, 3 * this.s, 0)
+            .setMaxWidth(this.w * 0.25 - 2 * this.s);
 
-        this.messageBox = this.add.text(this.w * 0.75 + this.s, this.h * 0.33)
-            .setStyle({ fontSize: `${2 * this.s}px`, color: '#eea' })
-            .setWordWrapWidth(this.w * 0.25 - 2 * this.s);
+        this.messageBox = this.add.bitmapText(this.w * 0.75 + this.s, this.h * 0.33, 'pixelFont', '', 2*this.s, 0)
+            .setMaxWidth(this.w * 0.25 - 2 * this.s);
 
-        this.inventoryBanner = this.add.text(this.w * 0.75 + this.s, this.h * 0.66)
-            .setStyle({ fontSize: `${2 * this.s}px` })
-            .setText("Inventory")
+        this.inventoryBanner = this.add.bitmapText(this.w * 0.75 + this.s, this.h * 0.66, 'pixelFont', 'Inventory', 2 * this.s, 0)
             .setAlpha(0);
 
         this.inventoryTexts = [];
@@ -201,6 +208,124 @@ class AdventureScene extends Phaser.Scene {
         });
     }
 
+    fadeDrop(arrayTargets) {
+        this.add.tweens({
+            targets: arrayTargets,
+            y: `-=${this.w * 0.3}`,
+            alpha: 0
+        })
+        //disable interactive
+    }
+
+    updateDisplayCode(codeArray, display) {
+        /*let codeDisplayStr = ``;
+        for (let i = 0; i < codeArray.length; ++i) {
+            if (i != 0){
+                codeDisplayStr = ` `;
+            }
+            codeDisplayStr += `${codeArray[i]}`;
+        }
+        display.setText(codeDisplayStr);*/
+    }
+
+    enterCode(numInput, codeArray, codeDisplay) {
+        //TODO: make down button that decrements, make enter button and add functionality for correct/incorrect inputs
+        // and add stuff that makes codes save and not update when all this junk is not on screen
+        //let codeDisplay = this.add.text(this.w * 0.1, this.w * 0.1, `${var1} ${var2} ${var3}`, {font: '400px Arial'});
+        this.updateDisplayCode(codeArray, codeDisplay);//add display arg
+        /*let up1 = this.add.image(this.w * 0.15, this.w * 0.1, 'upButtonPlaceholder')
+        .setScale(0.04)
+        .setInteractive()
+        .on('pointerdown', () => {
+            if (val1 == 9){
+                val1 = 0;
+            }
+            else{
+                val1 += 1;
+            }
+            codeInput.setText(`${var1} ${var2} ${var3}`); //codeInput is basically whatever is displaying the nums/letters
+        });*/
+
+        //add to string of some sort later
+        
+        /* 
+        let codeDisplayStr = ``;
+        for (let i = 0; i < codeArray.length; ++i) {
+            if (i != 0){
+                codeDisplayStr += ` `
+            }
+            codeDisplayStr += `${codeArray[i]}`;
+        }
+
+        for (let i = 0; i < codeArray.length; ++i) {
+            this.add.image()
+            .setScale()
+            .setInteractive()
+            .on('pointerdown', () => {
+                if (codeArray[i] == 9){
+                    codeArray[i] = 0;
+                }
+                else {
+                    codeArray[i] += 1;
+                }
+            });
+
+        }
+
+        codeArray.forEach((num) => {
+            
+            this.add.image()
+            .setScale()
+            .setInteractive()
+            .on('pointerdown', () => {
+                if (num == 9){
+                    num = 0;
+                }
+                else {
+                    num += 1;
+                }
+            });
+        });
+        
+        */
+            
+        let up2 = this.add.image(this.w * 0.33, this.w * 0.1, 'upButtonPlaceholder')
+        .setScale(0.04)
+        .setInteractive()
+        .on('pointerdown', () => {
+            if (val2 == 9){
+                val2 = 0;
+            }
+            else{
+                val2 += 1;
+            }
+            codeInput.setText(`${var1} ${var2} ${var3}`);
+        });
+
+        let up3 = this.add.image(this.w * 0.5, this.w * 0.1, 'upButtonPlaceholder')
+        .setScale(0.04)
+        .setInteractive()
+        .on('pointerdown', () => {
+            if (val3 == 9){
+                val3 = 0;
+            }
+            else{
+                val3 += 1;
+            }
+            codeInput.setText(`${var1} ${var2} ${var3}`);
+        });
+    }
+
+    doorAdd(xPos, yPos, doorImage, scale, key) {
+        return this.add.image(xPos, yPos, doorImage)
+        .setScale(scale)
+        .setInteractive()
+        .on('pointerover', () => this.showMessage(`It's a door that leads to the ${key}.`))
+        .on('pointerdown', () => {
+            this.gotoScene(key);
+        });
+    }
+
     /**
      * Fade out the camera and transition to another scene by key, carrying
      * the current inventory with us.
@@ -210,7 +335,10 @@ class AdventureScene extends Phaser.Scene {
     gotoScene(key) {
         this.cameras.main.fade(this.transitionDuration, 0, 0, 0);
         this.time.delayedCall(this.transitionDuration, () => {
-            this.scene.start(key, { inventory: this.inventory });
+            this.scene.start(key, {
+                inventory: this.inventory,
+                codes: this.codes,
+            });
         });
     }
 
@@ -229,5 +357,9 @@ class AdventureScene extends Phaser.Scene {
      */
     onEnter() {
         console.warn('This AdventureScene did not implement onEnter():', this.constructor.name);
+    }
+
+    sceneSpecificLoad() {
+        console.warn('This AdventureScene did not implement sceneSpecificLoad():', this.constructor.name);
     }
 }

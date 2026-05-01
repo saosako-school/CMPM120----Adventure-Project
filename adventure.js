@@ -26,9 +26,15 @@ class AdventureScene extends Phaser.Scene {
         this.inventory = data.inventory || [];
         this.codes = data.codes || {
             filingCabinet: [0, 0, 0],
+            filingCabinetAnswer: [9, 0, 7],
             lockbox: [0, 0, 0],
+            lockboxAnswer: [5, 3, 4],
             locker: ['A', 'A', 'A', 'A'],
+            lockerAnswer: ['F', 'G', 'B', 'C'],
+            wrongLocker: ['A', 'A', 'A', 'A'],
+            wrongLockerComparison: [-1, -1, -1, -1]
         };
+        this.readBook = data.readBook || 0;
     }
 
     /**
@@ -42,7 +48,52 @@ class AdventureScene extends Phaser.Scene {
 
     preload() {
         this.load.bitmapFont('pixelFont', 'bitmap font/minogram_6x10.png', 'bitmap font/minogram_6x10.xml');
+        this.load.image('redframesmall', 'images/Placeholders/Small_Number_Help_Frame.png');
+        this.load.image('rightArrow', 'images/Placeholders/Right_Arrow.png');
+        this.load.image('leftArrow', 'images/Placeholders/Left_Arrow.png');
+        this.load.image('leftClassBG', 'images/regular assets/LeftClassroomBG.png');
+        this.load.image('redTextFrame', 'images/regular assets/redTextFrame.png');
         this.sceneSpecificLoad();
+    }
+
+    setupVisuals() {
+        console.warn('This AdventureScene did not implement setupVisuals():', this.constructor.name);
+    }
+
+    //since I am not to override create, but I want the side stuff (inventory and all that) to appear OVER my background and
+    //furniture and doors and stuff, this just adds all that stuff that is already in create
+    sideUIStuff(direction) {
+        this.cameras.main.fadeIn(this.transitionDuration, 0, 0, 0);
+        let side = 0;
+        let fullscreenPos = 0.25;
+        if (direction == 'left') {
+            side = 0.75;
+            fullscreenPos = 1;
+        }
+
+        this.add.rectangle(this.w * side, 0, this.w * 0.25, this.h).setOrigin(0, 0).setFillStyle(0, 0.75);
+        this.add.bitmapText(this.w * side + this.s, this.s, 'pixelFont', this.name, 3 * this.s, 0)
+            .setMaxWidth(this.w * 0.25 - 2 * this.s);
+
+        this.messageBox = this.add.bitmapText(this.w * side + this.s, this.h * 0.33, 'pixelFont', '', 2*this.s, 0)
+            .setMaxWidth(this.w * 0.25 - 2 * this.s);
+
+        this.inventoryBanner = this.add.bitmapText(this.w * side + this.s, this.h * 0.66, 'pixelFont', 'Inventory', 2 * this.s, 0)
+            .setAlpha(0);
+        this.inventoryTexts = [];
+        this.updateInventory(direction);
+
+        this.add.text((this.w * fullscreenPos)-3*this.s, this.h-3*this.s, "📺")
+            .setStyle({ fontSize: `${2 * this.s}px` })
+            .setInteractive({useHandCursor: true})
+            .on('pointerover', () => this.showMessage('Fullscreen?'))
+            .on('pointerdown', () => {
+                if (this.scale.isFullscreen) {
+                    this.scale.stopFullscreen();
+                } else {
+                    this.scale.startFullscreen();
+                }
+            });
     }
 
     /**
@@ -64,7 +115,8 @@ class AdventureScene extends Phaser.Scene {
         this.sh = this.game.config.height/180;
 
         this.cameras.main.setBackgroundColor('#444');
-        this.cameras.main.fadeIn(this.transitionDuration, 0, 0, 0);
+
+        /*this.cameras.main.fadeIn(this.transitionDuration, 0, 0, 0);
 
         this.add.rectangle(this.w * 0.75, 0, this.w * 0.25, this.h).setOrigin(0, 0).setFillStyle(0);
         this.add.bitmapText(this.w * 0.75 + this.s, this.s, 'pixelFont', this.name, 3 * this.s, 0)
@@ -90,7 +142,7 @@ class AdventureScene extends Phaser.Scene {
                     this.scale.startFullscreen();
                 }
             });
-
+        */
         this.onEnter();
 
     }
@@ -116,7 +168,11 @@ class AdventureScene extends Phaser.Scene {
      * {@link AdventureScene#gainItem} and {@link AdventureScene#loseItem};
      * you generally do not need to call this yourself.
      */
-    updateInventory() {
+    updateInventory(direction) {
+        let side = 0;
+        if (direction == 'left') {
+            side = 0.75;
+        }
         if (this.inventory.length > 0) {
             this.tweens.add({
                 targets: this.inventoryBanner,
@@ -136,9 +192,8 @@ class AdventureScene extends Phaser.Scene {
         this.inventoryTexts = [];
         let h = this.h * 0.66 + 3 * this.s;
         this.inventory.forEach((e, i) => {
-            let text = this.add.text(this.w * 0.75 + 2 * this.s, h, e)
-                .setStyle({ fontSize: `${1.5 * this.s}px` })
-                .setWordWrapWidth(this.w * 0.75 + 4 * this.s);
+            let text = this.add.bitmapText(this.w * side + 2 * this.s, h, 'pixelFont', e, 1.75 * this.s)
+                .setMaxWidth(this.w * side + 4 * this.s);
             h += text.height + this.s;
             this.inventoryTexts.push(text);
         });
@@ -160,13 +215,13 @@ class AdventureScene extends Phaser.Scene {
      *
      * @param {string} item Item name. Short and consistent works best (e.g. `"key"`, not `"a shiny key"`).
      */
-    gainItem(item) {
+    gainItem(item, direction) {
         if (this.inventory.includes(item)) {
             console.warn('gaining item already held:', item);
             return;
         }
         this.inventory.push(item);
-        this.updateInventory();
+        this.updateInventory(direction);
         for (let text of this.inventoryTexts) {
             if (text.text == item) {
                 this.tweens.add({
@@ -186,7 +241,7 @@ class AdventureScene extends Phaser.Scene {
      *
      * @param {string} item Item name. Must match the name passed to {@link AdventureScene#gainItem}.
      */
-    loseItem(item) {
+    loseItem(item, direction) {
         if (!this.inventory.includes(item)) {
             console.warn('losing item not held:', item);
             return;
@@ -204,28 +259,8 @@ class AdventureScene extends Phaser.Scene {
         }
         this.time.delayedCall(500, () => {
             this.inventory = this.inventory.filter((e) => e != item);
-            this.updateInventory();
+            this.updateInventory(direction);
         });
-    }
-
-    fadeDrop(arrayTargets) {
-        this.add.tweens({
-            targets: arrayTargets,
-            y: `-=${this.w * 0.3}`,
-            alpha: 0
-        })
-        //disable interactive
-    }
-
-    updateDisplayCode(codeArray, display) {
-        /*let codeDisplayStr = ``;
-        for (let i = 0; i < codeArray.length; ++i) {
-            if (i != 0){
-                codeDisplayStr = ` `;
-            }
-            codeDisplayStr += `${codeArray[i]}`;
-        }
-        display.setText(codeDisplayStr);*/
     }
 
     fadeObject(target, alphaStart, alphaEnd) {
@@ -233,10 +268,11 @@ class AdventureScene extends Phaser.Scene {
             targets: target,
             alpha: {from: alphaStart, to: alphaEnd},
             ease: 'Linear',
+            duration: 1000,
         })
     }
 
-    enterCode(summoningObject, codeArray, sceneObjectArray) {
+    enterCode(summoningObject, codeArray, sceneObjectArray, answer, addedItem, direction) {
         //TODO: make down button that decrements, make enter button and add functionality for correct/incorrect inputs
         // and add stuff that makes codes save and not update when all this junk is not on screen
         //let codeDisplay = this.add.text(this.w * 0.1, this.w * 0.1, `${var1} ${var2} ${var3}`, {font: '400px Arial'});
@@ -262,7 +298,7 @@ class AdventureScene extends Phaser.Scene {
             startingXPos = 110;
         }
         else {
-            //blabl
+            startingXPos = 90;
         }
 
         for (let i = 0; i < codeArray.length; ++i){
@@ -304,22 +340,42 @@ class AdventureScene extends Phaser.Scene {
         for (let i = 0; i < codeArray.length; ++i){
             upButtons[i].setInteractive()
             .on('pointerdown', () => {
-                if (codeArray[i] == 9) {
-                    codeArray[i] = 0;
+                if (codeArray.length == 3) {
+                    if (codeArray[i] == 9) {
+                        codeArray[i] = 0;
+                    }
+                    else {
+                        codeArray[i] += 1;
+                    }
                 }
                 else {
-                    codeArray[i] += 1;
+                    if (codeArray[i] == 'Z') {
+                        codeArray[i] = 'A';
+                    }
+                    else {
+                        codeArray[i] = String.fromCharCode(codeArray[i].charCodeAt(0) + 1);
+                    }
                 }
                 display[i].setText(`${codeArray[i]}`);
             });
 
             downButtons[i].setInteractive()
             .on('pointerdown', () => {
-                if (codeArray[i] == 0) {
-                    codeArray[i] = 9;
+                if (codeArray.length == 3) {
+                    if (codeArray[i] == 0) {
+                        codeArray[i] = 9;
+                    }
+                    else {
+                        codeArray[i] -= 1;
+                    }
                 }
                 else {
-                    codeArray[i] -= 1;
+                    if (codeArray[i] == 'A') {
+                        codeArray[i] = 'Z';
+                    }
+                    else {
+                        codeArray[i] = String.fromCharCode(codeArray[i].charCodeAt(0) - 1);
+                    }
                 }
                 display[i].setText(`${codeArray[i]}`);
             });
@@ -354,8 +410,48 @@ class AdventureScene extends Phaser.Scene {
 
         enter.setInteractive()
         .on('pointerdown', () => {
-            //if code matches actual code, cool, do nothing otherwise
-        })
+            for (let i = 0; i < codeArray.length; ++i){
+                if (codeArray[i] != answer[i]){
+                    this.showMessage('You enter the code, but nothing happens.');
+                    break;
+                }
+                if (i == codeArray.length - 1){
+                    this.showMessage(`You unlocked the (blank) and got the ${addedItem}.`);
+                    this.gainItem(addedItem, direction);
+
+                    for (let i = codeArray.length - 1; i >= 0; --i) {
+                        downButtons[i].disableInteractive();
+                        upButtons[i].disableInteractive();
+                        display[i].disableInteractive();
+                        cancel.disableInteractive();
+                        enter.disableInteractive();
+                    }
+                    cancel.disableInteractive();
+                    enter.disableInteractive();
+
+                    this.fadeObject(display, 1, 0);
+                    this.fadeObject(downButtons, 1, 0);
+                    this.fadeObject(upButtons, 1, 0);
+                    this.fadeObject(uiBackground, 0.5, 0);
+                    this.fadeObject(numberFrames, 1, 0);
+                    this.fadeObject(frame, 1, 0);
+                    this.fadeObject(cancel, 1, 0);
+                    this.fadeObject(enter, 1, 0);
+                    this.fadeObject(exitText, 1, 0);
+                    this.fadeObject(enterText, 1, 0);
+
+                    summoningObject.setInteractive()
+                    .on('pointerover', () => {
+                        this.showMessage("There's nothing of note left in there.");
+                    })
+                    .removeListener('pointerdown');
+
+                    for (let i = 0; i < sceneObjectArray.length; ++i) {
+                        sceneObjectArray[i].setInteractive();
+                    }
+                }
+            }
+        });
 
         //console.log(codeArray.length);
         //console.log(startingXPos);
@@ -455,6 +551,134 @@ class AdventureScene extends Phaser.Scene {
         });
     }
 
+    investigate(pages, summoningObject, sceneObjectArray) {
+        summoningObject.disableInteractive();
+        for (let i = 0; i < sceneObjectArray.length; ++i) {
+            sceneObjectArray[i].disableInteractive();
+        }
+        let currentPageNum = 1;
+        let frame = this.add.image(this.w * 0.5, this.h * 0.5, 'UIFrame').setScale(6).setAlpha(0);
+        let uiBackground = this.add.image(this.w * 0.5, this.h * 0.5, 'UIBackground').setScale(6).setAlpha(0);
+        //this.add.image(this.sw * 153.5, this.sh * 41.5, 'redframesmall').setScale(6);
+        //this.add.image(this.sw * 166.5, this.sh * 41.5, 'redframesmall').setScale(6);
+        let back = this.add.image(this.sw * 142.5, this.sh * 42, 'leftArrow').setScale(6).setAlpha(0);
+        let next = this.add.image(this.sw * 177.5, this.sh * 42, 'rightArrow').setScale(6).setAlpha(0);
+
+        let currentPage = this.add.bitmapText(this.sw * 151, this.sh * 37, 'pixelFont', currentPageNum, 60, 1).setAlpha(0);
+        let lastPage = this.add.bitmapText(this.sw * 164, this.sh * 37, 'pixelFont', `${pages.length}`, 60, 1).setAlpha(0);
+        let slash = this.add.bitmapText(this.sw * 157.5, this.sh * 37, 'pixelFont', '/', 60, 1).setAlpha(0);
+
+        let cancel = this.add.image(this.sw * 100, this.sh * 123, 'enterCancelButton')
+        .setScale(6).setAlpha(0);
+        let exitText = this.add.bitmapText(this.sw * 89, this.sh * 118.5, 'pixelFont', 'Exit', 60, 1).setAlpha(0);
+        let displayText = this.add.bitmapText(this.sw * 90, this.sh * 49.25, 'pixelFont', `${pages[currentPageNum - 1]}`, 60, 0)
+        .setMaxWidth(this.sw * 140).setAlpha(0);
+
+        this.fadeObject(frame, 0, 1);
+        this.fadeObject(uiBackground, 0, 0.5);
+        this.fadeObject(back, 0, 1);
+        this.fadeObject(next, 0, 1);
+        this.fadeObject(currentPage, 0, 1);
+        this.fadeObject(lastPage, 0, 1);
+        this.fadeObject(cancel, 0, 1);
+        this.fadeObject(exitText, 0, 1);
+        this.fadeObject(slash, 0, 1);
+        this.fadeObject(displayText, 0, 1);
+
+        next.setInteractive();
+        next.on('pointerdown', () => {
+            next.disableInteractive();
+            back.disableInteractive();
+            if (currentPageNum == pages.length) {
+                currentPageNum = 1;
+            }
+            else {
+                currentPageNum += 1;
+            }
+            let fadeOut = this.tweens.add({
+                targets: [currentPage, displayText],
+                y: '+=25',
+                alpha: {from: 1, to: 0},
+                ease: 'Linear',
+                duration: 500
+            });
+
+            fadeOut.on('complete', () => {
+                currentPage.setText(`${currentPageNum}`);
+                displayText.setText(`${pages[currentPageNum - 1]}`);
+                let fadeIn = this.tweens.add({
+                    targets: [currentPage, displayText],
+                    y: '-=25',
+                    alpha: {from: 0, to: 1},
+                    ease: 'Linear',
+                    duration: 500,
+                });
+
+                fadeIn.on('complete', () => {
+                    next.setInteractive();
+                    back.setInteractive();
+                });
+            });
+        });
+
+        back.setInteractive();
+        back.on('pointerdown', () => {
+            back.disableInteractive();
+            next.disableInteractive();
+            if (currentPageNum == 1) {
+                currentPageNum = pages.length;
+            }
+            else {
+                currentPageNum -= 1;
+            }
+            let fadeOut = this.tweens.add({
+                targets: [currentPage, displayText],
+                y: '+=25',
+                alpha: {from: 1, to: 0},
+                ease: 'Linear',
+                duration: 500
+            });
+            fadeOut.on('complete', () => {
+                currentPage.setText(`${currentPageNum}`);
+                displayText.setText(`${pages[currentPageNum - 1]}`);
+                let fadeIn = this.tweens.add({
+                    targets: [currentPage, displayText],
+                    y: '-=25',
+                    alpha: {from: 0, to: 1},
+                    ease: 'Linear',
+                    duration: 500,
+                });
+                fadeIn.on('complete', () => {
+                    back.setInteractive();
+                    next.setInteractive();
+                });
+            });
+        });
+
+        cancel.setInteractive();
+        cancel.on('pointerdown', () => {
+            back.disableInteractive();
+            next.disableInteractive();
+            cancel.disableInteractive();
+
+            this.fadeObject(frame, 1, 0);
+            this.fadeObject(uiBackground, 0.5, 0);
+            this.fadeObject(back, 1, 0);
+            this.fadeObject(next, 1, 0);
+            this.fadeObject(currentPage, 1, 0);
+            this.fadeObject(lastPage, 1, 0);
+            this.fadeObject(cancel, 1, 0);
+            this.fadeObject(exitText, 1, 0);
+            this.fadeObject(slash, 1, 0);
+            this.fadeObject(displayText, 1, 0);
+            for (let i = 0; i < sceneObjectArray.length; ++i) {
+                sceneObjectArray[i].setInteractive();
+            }
+            summoningObject.setInteractive();
+            this.readBook = 1;
+        });
+    }
+
     /**
      * Fade out the camera and transition to another scene by key, carrying
      * the current inventory with us.
@@ -467,6 +691,7 @@ class AdventureScene extends Phaser.Scene {
             this.scene.start(key, {
                 inventory: this.inventory,
                 codes: this.codes,
+                readBook: this.readBook
             });
         });
     }

@@ -30,10 +30,15 @@ class AdventureScene extends Phaser.Scene {
             lockbox: [0, 0, 0],
             lockboxAnswer: [5, 3, 4],
             locker: ['A', 'A', 'A', 'A'],
-            lockerAnswer: ['F', 'G', 'B', 'C'],
+            lockerAnswer: ['F', 'D', 'E', 'A'],
             wrongLocker: ['A', 'A', 'A', 'A'],
             wrongLockerComparison: [-1, -1, -1, -1]
         };
+        this.gameStateStuff = data.gameStateStuff || {
+            unlockPadlock: 0,
+            unlockDoor: 0,
+            removeBar: 0,
+        }
         this.readBook = data.readBook || 0;
     }
 
@@ -48,20 +53,25 @@ class AdventureScene extends Phaser.Scene {
 
     preload() {
         this.load.bitmapFont('pixelFont', 'bitmap font/minogram_6x10.png', 'bitmap font/minogram_6x10.xml');
-        this.load.image('redframesmall', 'images/Placeholders/Small_Number_Help_Frame.png');
         this.load.image('rightArrow', 'images/Placeholders/Right_Arrow.png');
         this.load.image('leftArrow', 'images/Placeholders/Left_Arrow.png');
         this.load.image('leftClassBG', 'images/regular assets/LeftClassroomBG.png');
-        this.load.image('redTextFrame', 'images/regular assets/redTextFrame.png');
+        this.load.image('upArrow', 'images/UI assets/UpArrow.png');
+        this.load.image('downArrow', 'images/UI assets/DownArrow.png');
+        this.load.image('UIFrame', 'images/UI assets/UI_Frame.png');
+        this.load.image('UIBackground', 'images/UI assets/UI_Background.png');
+        this.load.image('enterCancelButton', 'images/UI assets/Button_UI.png');
+        this.load.image('numberFrame', 'images/UI assets/numberFrame.png');
+        this.load.image('leftClassDoor', 'images/regular assets/door.png');
+        this.load.image('leftRoomDecor', 'images/regular assets/leftRoomDecor.png');
+        this.load.image('leftClassBG', 'images/regular assets/LeftClassroomBG.png');
+        this.load.image('rightClassDecor', 'images/regular assets/rightClassDecor.png');
+        this.load.image('rightClassBG', 'images/regular assets/rightClassroom.png');
+        this.load.image('rightDoor', 'images/regular assets/rightDoor.png');
         this.sceneSpecificLoad();
     }
 
-    setupVisuals() {
-        console.warn('This AdventureScene did not implement setupVisuals():', this.constructor.name);
-    }
 
-    //since I am not to override create, but I want the side stuff (inventory and all that) to appear OVER my background and
-    //furniture and doors and stuff, this just adds all that stuff that is already in create
     sideUIStuff(direction) {
         this.cameras.main.fadeIn(this.transitionDuration, 0, 0, 0);
         let side = 0;
@@ -115,34 +125,6 @@ class AdventureScene extends Phaser.Scene {
         this.sh = this.game.config.height/180;
 
         this.cameras.main.setBackgroundColor('#444');
-
-        /*this.cameras.main.fadeIn(this.transitionDuration, 0, 0, 0);
-
-        this.add.rectangle(this.w * 0.75, 0, this.w * 0.25, this.h).setOrigin(0, 0).setFillStyle(0);
-        this.add.bitmapText(this.w * 0.75 + this.s, this.s, 'pixelFont', this.name, 3 * this.s, 0)
-            .setMaxWidth(this.w * 0.25 - 2 * this.s);
-
-        this.messageBox = this.add.bitmapText(this.w * 0.75 + this.s, this.h * 0.33, 'pixelFont', '', 2*this.s, 0)
-            .setMaxWidth(this.w * 0.25 - 2 * this.s);
-
-        this.inventoryBanner = this.add.bitmapText(this.w * 0.75 + this.s, this.h * 0.66, 'pixelFont', 'Inventory', 2 * this.s, 0)
-            .setAlpha(0);
-
-        this.inventoryTexts = [];
-        this.updateInventory();
-
-        this.add.text(this.w-3*this.s, this.h-3*this.s, "📺")
-            .setStyle({ fontSize: `${2 * this.s}px` })
-            .setInteractive({useHandCursor: true})
-            .on('pointerover', () => this.showMessage('Fullscreen?'))
-            .on('pointerdown', () => {
-                if (this.scale.isFullscreen) {
-                    this.scale.stopFullscreen();
-                } else {
-                    this.scale.startFullscreen();
-                }
-            });
-        */
         this.onEnter();
 
     }
@@ -192,7 +174,7 @@ class AdventureScene extends Phaser.Scene {
         this.inventoryTexts = [];
         let h = this.h * 0.66 + 3 * this.s;
         this.inventory.forEach((e, i) => {
-            let text = this.add.bitmapText(this.w * side + 2 * this.s, h, 'pixelFont', e, 1.75 * this.s)
+            let text = this.add.bitmapText((this.w * side) + (2 * this.s), h, 'pixelFont', e, 1.75 * this.s)
                 .setMaxWidth(this.w * side + 4 * this.s);
             h += text.height + this.s;
             this.inventoryTexts.push(text);
@@ -272,12 +254,7 @@ class AdventureScene extends Phaser.Scene {
         })
     }
 
-    enterCode(summoningObject, codeArray, sceneObjectArray, answer, addedItem, direction) {
-        //TODO: make down button that decrements, make enter button and add functionality for correct/incorrect inputs
-        // and add stuff that makes codes save and not update when all this junk is not on screen
-        //let codeDisplay = this.add.text(this.w * 0.1, this.w * 0.1, `${var1} ${var2} ${var3}`, {font: '400px Arial'});
-        //this.updateDisplayCode(codeArray, codeDisplay);//add display arg
-        //console.log(codeArray[0]);
+    enterCode(summoningObject, codeArray, sceneObjectArray, answer, addedItem, direction, lockedContainer) {
         summoningObject.disableInteractive();
 
         let startingXPos = 0;
@@ -287,8 +264,6 @@ class AdventureScene extends Phaser.Scene {
         let numberFrames = [];
         let frame = this.add.image(this.w * 0.5, this.h * 0.5, 'UIFrame').setScale(6).setAlpha(0);
         let uiBackground = this.add.image(this.w * 0.5, this.h * 0.5, 'UIBackground').setScale(6).setAlpha(0)
-        //this.add.image(this.sw * 100, this.sh * 123, 'redframe2').setScale(6);
-        //this.add.image(this.sw * 220, this.sh * 123, 'redframe2').setScale(6);
 
         for (let i = 0; i < sceneObjectArray.length; ++i) {
             sceneObjectArray[i].disableInteractive();
@@ -416,7 +391,7 @@ class AdventureScene extends Phaser.Scene {
                     break;
                 }
                 if (i == codeArray.length - 1){
-                    this.showMessage(`You unlocked the (blank) and got the ${addedItem}.`);
+                    this.showMessage(`You unlocked the ${lockedContainer} and got the ${addedItem}.`);
                     this.gainItem(addedItem, direction);
 
                     for (let i = codeArray.length - 1; i >= 0; --i) {
@@ -452,93 +427,6 @@ class AdventureScene extends Phaser.Scene {
                 }
             }
         });
-
-        //console.log(codeArray.length);
-        //console.log(startingXPos);
-        //let nummy = this.add.bitmapText(this.sw * 150, this.sh * 53, 'pixelFont', `1`, 240);
-
-
-        /*let up1 = this.add.image(this.w * 0.15, this.w * 0.1, 'upButtonPlaceholder')
-        .setScale(0.04)
-        .setInteractive()
-        .on('pointerdown', () => {
-            if (val1 == 9){
-                val1 = 0;
-            }
-            else{
-                val1 += 1;
-            }
-            codeInput.setText(`${var1} ${var2} ${var3}`); //codeInput is basically whatever is displaying the nums/letters
-        });*/
-
-        //add to string of some sort later
-        
-        /* 
-        let codeDisplayStr = ``;
-        for (let i = 0; i < codeArray.length; ++i) {
-            if (i != 0){
-                codeDisplayStr += ` `
-            }
-            codeDisplayStr += `${codeArray[i]}`;
-        }
-
-        for (let i = 0; i < codeArray.length; ++i) {
-            this.add.image()
-            .setScale()
-            .setInteractive()
-            .on('pointerdown', () => {
-                if (codeArray[i] == 9){
-                    codeArray[i] = 0;
-                }
-                else {
-                    codeArray[i] += 1;
-                }
-            });
-
-        }
-
-        codeArray.forEach((num) => {
-            
-            this.add.image()
-            .setScale()
-            .setInteractive()
-            .on('pointerdown', () => {
-                if (num == 9){
-                    num = 0;
-                }
-                else {
-                    num += 1;
-                }
-            });
-        });
-        
-        */
-            
-        /*let up2 = this.add.image(this.w * 0.33, this.w * 0.1, 'upButtonPlaceholder')
-        .setScale(0.04)
-        .setInteractive()
-        .on('pointerdown', () => {
-            if (val2 == 9){
-                val2 = 0;
-            }
-            else{
-                val2 += 1;
-            }
-            codeInput.setText(`${var1} ${var2} ${var3}`);
-        });
-
-        let up3 = this.add.image(this.w * 0.5, this.w * 0.1, 'upButtonPlaceholder')
-        .setScale(0.04)
-        .setInteractive()
-        .on('pointerdown', () => {
-            if (val3 == 9){
-                val3 = 0;
-            }
-            else{
-                val3 += 1;
-            }
-            codeInput.setText(`${var1} ${var2} ${var3}`);
-        });*/
     }
 
     doorAdd(xPos, yPos, doorImage, scale, key) {
@@ -691,7 +579,8 @@ class AdventureScene extends Phaser.Scene {
             this.scene.start(key, {
                 inventory: this.inventory,
                 codes: this.codes,
-                readBook: this.readBook
+                readBook: this.readBook,
+                gameStateStuff: this.gameStateStuff
             });
         });
     }

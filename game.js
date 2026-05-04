@@ -38,7 +38,7 @@ class Hallway extends AdventureScene {
         this.doorAdd(this.sw*194.5, this.sh*94.5, 'chemDoor', 6, 'chemistry classroom');
         this.doorAdd(this.sw*30, this.sh*91, 'orchestraDoor', 6, 'orchestra classroom');
         this.doorAdd(this.sw*69.5, this.sh*88, 'mathDoor', 6, 'math classroom');
-        this.add.image(this.sw*69.5, this.sh*88, 'exitDoor').setScale(6);
+        this.add.image(this.sw*104.5, this.sh*86, 'exitDoor').setScale(6);
         this.add.image(this.sw*104.5, this.sh*100, 'upArrow').setScale(6)
         .setInteractive()
         .on('pointerover', () => {
@@ -385,30 +385,6 @@ class ExitDoor extends AdventureScene {
         this.load.image('lock', 'images/regular assets/lock.png');
         this.load.image('padlock', 'images/regular assets/padlock.png');
         this.load.image('bars', 'images/regular assets/bars.png');
-    }
-
-    updateInteractions(exited) {
-        if (!(this.gameStateStuff.removeBar == 0 || this.gameStateStuff.unlockDoor == 0 || this.gameStateStuff.unlockPadlock == 0)) {
-            exited.removeListener('pointerover');
-            exited.on('pointerover', () => {
-                this.showMessage("At last, you can be free!");
-            })
-        }
-        exited.removeListener('pointerdown');
-        exited.on('pointerdown', () => {
-            if (this.gameStateStuff.removeBar == 0) {
-                this.showMessage("You try to tug open the doors, but the giant wood bar keeps the door from budging.");
-            }
-            else if (this.gameStateStuff.removePadlock == 0) {
-                this.showMessage("You try to open the doors, but the combination lock and chain keep the, firmly shut.");
-            }
-            else if (this.gameStateStuff.unlockDoor == 0) {
-                this.showMessage("You try to open the doors, but they appear to be locked.");
-            }
-            else {
-                this.scene.start("endScene");
-            }
-        })
     }
 
     onEnter() {

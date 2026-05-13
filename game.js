@@ -381,7 +381,7 @@ class ExitDoor extends AdventureScene {
 
         this.load.image('exitBG', 'images/regular assets/exitBG.png');
         this.load.image('exit', 'images/regular assets/finalExit.png');
-        this.load.image('doorHandles', 'images/regular assets/doorhandles.png');
+        this.load.image('doorHandles', 'images/regular assets/doorHandles.png');
         this.load.image('lock', 'images/regular assets/lock.png');
         this.load.image('padlock', 'images/regular assets/padlock.png');
         this.load.image('bars', 'images/regular assets/bars.png');

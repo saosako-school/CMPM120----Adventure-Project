@@ -563,7 +563,6 @@ class AdventureScene extends Phaser.Scene {
                 sceneObjectArray[i].setInteractive();
             }
             summoningObject.setInteractive();
-            this.readBook = 1;
         });
     }
 

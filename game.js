@@ -185,6 +185,7 @@ Signifying nothing.`];
         })
         .on('pointerdown', () => {
             this.investigate(bookPages, book, englishObjects);
+            this.readBook = 1;
             if (this.hasItem('padlock code') != true) {
                 inspirationalPoster.on('pointerover', () => {
                     this.showMessage("You suddenly feel irritated by the 'Tomorrow Starts Today' poster.");
